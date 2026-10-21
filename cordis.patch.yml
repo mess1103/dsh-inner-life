@@ -1,0 +1,14 @@
+# dsh-inner-life 的 bundle 补丁
+#
+# 只做一件事：把这个包自己作为一行 Host 插件插进 profile。
+# 没有 UI 半端（client.js），所以不需要 dsh.client 字段。
+#
+# 装法（任选其一）：
+#   dsh plugin --profile <名字> add dsh-inner-life
+#   或 DSH 插件市场里点安装
+#
+# 想改配置（存哪儿 / 关掉隐藏路径 / 换盐）：设置 → 插件 → 插件配置 → 内心生活。
+# 也可以在 profile 的 patch 里覆写这一行的 config。
+- insert:
+    - id: inner-life
+      name: dsh-inner-life

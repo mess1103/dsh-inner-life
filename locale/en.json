@@ -1,0 +1,21 @@
+{
+  "meta": {
+    "title": "Inner Life",
+    "description": "Give your agent a private inner life: a diary it writes daily, tucked into a path you can't trace."
+  },
+  "tool": {
+    "write": "Write down a thought",
+    "read": "Read back one day",
+    "recent": "What was written recently",
+    "find": "Where one day is stored",
+    "search": "Search your own writing",
+    "stats": "How much, how many days in a row"
+  },
+  "config": {
+    "dir": "Storage directory (empty = $DSH_HOME/inner-life)",
+    "hidden": "Rotate a hashed path every day (off = YYYY-MM/YYYY-MM-DD.md)",
+    "salt": "Salt (empty = random on first run; changing it loses old entries)",
+    "maxBytes": "Max bytes per entry",
+    "indexLimit": "Max entries kept in the index"
+  }
+}
