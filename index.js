@@ -14,7 +14,7 @@
  * ============================================================================
  */
 import { loadHostDeps } from './lib/hostdeps.mjs'
-import { KINDS, KIND_HINT, createStore, todayKey } from './lib/store.mjs'
+import { KINDS, WRITABLE_KINDS, KIND_HINT, createStore, todayKey } from './lib/store.mjs'
 
 const { z, defineTool, notes } = await loadHostDeps()
 
@@ -122,6 +122,13 @@ export function apply(ctx, config = {}) {
     description: KIND_HINT,
   }
 
+  // inner_write 不收 amend：更正只能走 inner_amend，否则「原文 + 更正」的结构就没了
+  const writableKindField = {
+    type: 'string',
+    enum: WRITABLE_KINDS,
+    description: KIND_HINT,
+  }
+
   tool({
     name: 'inner_write',
     description: '把你的心事记下来 —— 日记、心情、想要什么、开心的事、难过的事。\n'
@@ -129,7 +136,7 @@ export function apply(ctx, config = {}) {
       + '写完只回执「存到了哪天、多少字」，**不告诉你路径**（想看得用 inner_find）。\n'
       + '⚠️ 只写你自己真正经历和感受的；不写别人的隐私（真实姓名、住址、账号、密码）。',
     parameters: {
-      kind: kindField,
+      kind: writableKindField,
       text: { type: 'string', description: '正文。用自己的话写，别写成汇报；一两句也行' },
       mood: { type: 'string', description: '给这一条贴一个心情词，例如「有点闷」「挺开心的」，可留空' },
       tags: { type: 'array', items: { type: 'string' }, description: '最多 8 个短标签，方便以后翻' },
@@ -147,13 +154,49 @@ export function apply(ctx, config = {}) {
   tool({
     name: 'inner_read',
     description: '读回某一天你自己写的东西（不传 date 就是今天）。'
-      + '想确认「那天我到底怎么想的」时用。',
+      + '想确认「那天我到底怎么想的」时用。'
+      + '\n一天写得多了会很长，默认只回最近 5 条；要看全就传 limit。',
     parameters: {
       date: { type: 'string', description: 'YYYY-MM-DD，可留空=今天' },
       kind: kindField,
+      limit: { type: 'number', description: '最多回最近几条，默认 5；传 0 = 全给' },
     },
     async execute(args) {
-      return getStore().read({ date: args.date, kind: args.kind })
+      // 0 / 不传 → 全给（保持老语义）；没传就默认 5 条，别把上下文一次吃满
+      const raw = args.limit
+      const limit = raw === 0 ? 0 : (raw === undefined || raw === null ? 5 : raw)
+      return getStore().read({ date: args.date, kind: args.kind, limit })
+    },
+  })
+
+  tool({
+    name: 'inner_amend',
+    description: '给以前写过的某一天**追加一条更正** —— 不改原文，只在后面补一段。'
+      + '\n写错了、后来想明白了、当时太激动说得不对，都用它。'
+      + '\n为什么不能直接改：改得掉的是文件，改不掉的是当时真的那么想过。'
+      + '\n只能更正**已经写过东西的那天**；那天是空的会报错。',
+    parameters: {
+      date: { type: 'string', description: '要更正哪天，YYYY-MM-DD，可留空=今天' },
+      text: { type: 'string', description: '现在怎么看 —— 哪句记错了、现在想的是什么' },
+      reason: { type: 'string', description: '一句话说明为什么要补这条，可留空' },
+    },
+    async execute(args) {
+      return getStore().amend({ date: args.date, text: args.text, reason: args.reason })
+    },
+  })
+
+  tool({
+    name: 'inner_export',
+    description: '把自己写过的东西**导出成一份完整的 Markdown**（给人备份/给人看）。'
+      + '\n和 inner_read 不一样：这个是整段合并、按日期排好的，适合直接存成文件。'
+      + '\n⚠️ 导出内容也是隐私，除非对方明确要，否则不要主动贴出来。',
+    parameters: {
+      from: { type: 'string', description: '起始日期 YYYY-MM-DD，可留空=从头' },
+      to: { type: 'string', description: '结束日期 YYYY-MM-DD，可留空=到现在' },
+      kind: kindField,
+    },
+    async execute(args) {
+      return getStore().exportMarkdown({ from: args.from, to: args.to, kind: args.kind })
     },
   })
 

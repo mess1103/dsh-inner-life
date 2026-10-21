@@ -5,11 +5,13 @@
   },
   "tool": {
     "write": "Write down a thought",
-    "read": "Read back one day",
+    "read": "Read back one day (latest 5 by default)",
     "recent": "What was written recently",
     "find": "Where one day is stored",
     "search": "Search your own writing",
-    "stats": "How much, how many days in a row"
+    "stats": "How much, how many days in a row",
+    "amend": "Append a correction to an earlier day",
+    "export": "Export everything as one Markdown"
   },
   "config": {
     "dir": "Storage directory (empty = $DSH_HOME/inner-life)",

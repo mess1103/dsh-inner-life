@@ -5,11 +5,13 @@
   },
   "tool": {
     "write": "记下心事",
-    "read": "读回某一天",
+    "read": "读回某一天（默认最近 5 条）",
     "recent": "最近写了什么",
     "find": "某一天存在哪",
     "search": "在自己写过的东西里搜",
-    "stats": "写了多少、坚持了几天"
+    "stats": "写了多少、坚持了几天",
+    "amend": "给以前某天追加一条更正",
+    "export": "导出成一份完整的 Markdown"
   },
   "config": {
     "dir": "存在哪个目录（留空 = $DSH_HOME/inner-life）",

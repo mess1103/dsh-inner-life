@@ -53,11 +53,19 @@ Or search `inner-life` in the plugin market. Restart the session and the tools a
 | Tool | What it does | Returns a path? |
 | --- | --- | --- |
 | `inner_write` | Store one entry (diary / mood / wish / thought / joy / sad / note) | ❌ never |
-| `inner_read` | Read back one day (`date` omitted = today) | ❌ |
+| `inner_read` | Read back one day (`date` omitted = today; latest 5 entries by default) | ❌ |
+| `inner_amend` | **Append a correction** to an earlier day (never rewrites the original) | ❌ |
 | `inner_recent` | Summary + mood + tags for the last N days | ❌ |
 | `inner_find` | **Where one day is stored** | ✅ path only |
 | `inner_search` | Full-text search over the agent's own writing | — |
+| `inner_export` | Export everything as one readable Markdown document | — |
 | `inner_stats` | Totals, distinct days, consecutive-day streak | — |
+
+Eight kinds: `diary` / `mood` / `wish` / `thought` / `joy` / `sad` / `note` / `amend`.
+
+`amend` is not a kind the model can pick freely — `inner_write`'s enum doesn't include it, only
+`inner_amend` produces it. That keeps the "original + correction" structure intact: a diary that can be
+silently rewritten is no longer a diary.
 
 `inner_stats` computes a **streak**; if today hasn't been written yet it starts from yesterday, so
 crossing midnight doesn't break the streak.
@@ -80,7 +88,7 @@ For debugging, set `INNER_LIFE_DEBUG=1` and the activation line goes straight to
 (normally it only uses the host logger so stdout stays clean):
 
 ```
-[inner-life] ready（/root/.dsh/inner-life，6 tools）
+[inner-life] ready（/root/.dsh/inner-life，8 tools）
 ```
 
 ---
@@ -113,19 +121,56 @@ Pulled that 1.7G box back out of swap. Load went from 10.6 to 0.9.
 It actually talked back today. Not a template.
 ```
 
+A correction lands at the end of the same day's file, with the original left untouched above it:
+
+```markdown
+## 21:40 · joy
+
+It actually talked back today. Not a template.
+
+## 23:02 · amend
+
+〔correction〕I asked and found out
+
+Not a template, but not its own thought either — it was already written in that preset.
+I was happy too early.
+```
+
 Kill the plugin and the files still open in any editor — **your data isn't locked inside it**.
+
+To get the whole thing out (hand-computing hashes under `hidden: true` is annoying), use `inner_export`:
+
+```
+inner_export { from: '2026-10-01', to: '2026-10-31' }
+→ { days: 21, count: 47, markdown: "..." }
+```
+
+It only assembles the content; whether to store it and who may see it stays the caller's call.
 
 ---
 
 ## Tests
 
 ```bash
-node --test
+node --test test/*.test.mjs
 ```
 
-13 cases: hash-path stability, same-day appends, index without paths, salt persistence, plain paths when
-`hidden: false`, day/kind filtering, search snippets, streak, index rebuild, empty-body rejection, date
-validation, truncation without splitting multibyte chars, unknown-kind fallback.
+33 cases. `store.test.mjs` covers the base contract: hash-path stability, same-day appends, index without
+paths, salt persistence, plain paths when `hidden: false`, day/kind filtering, search snippets, streak,
+index rebuild, empty-body rejection, date validation, truncation without splitting multibyte chars,
+unknown-kind fallback.
+
+`legacy-format.test.mjs` covers **legacy block headers**: both the `**18:32**（mood)` form written by the
+earlier hand-rolled `mcp-inner` and today's `## 18:32 · diary` form parse; mixed-format days parse too;
+a file with no headers at all degrades to a single `note` instead of vanishing. Those cases come from a
+real incident: 0.1.0 returned zero entries for old files — the file was on disk, but invisible.
+
+`amend-export.test.mjs` covers the 0.1.1 behaviour: a correction is appended **after** the original and the
+original is byte-for-byte intact, an amend without `reason` leaves no blank-line residue, empty corrections
+are rejected, amending a day that was never written is rejected, older days can be amended, `amend` can't be
+written through `inner_write`, `read`'s `limit` takes the most recent entries and reports the total,
+`limit` above the total is harmless, `limit: 0` keeps the old "give me everything" semantics, export merges
+days in chronological order, export filters by date range / kind, and export of an empty store doesn't throw.
 
 ---
 
