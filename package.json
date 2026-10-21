@@ -43,7 +43,9 @@
     }
   },
   "scripts": {
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "smoke": "node test/smoke.mjs",
+    "check": "npm test && npm run smoke"
   },
   "dsh": {
     "bundle": {
