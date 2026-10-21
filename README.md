@@ -150,11 +150,9 @@ inner_export { from: '2026-10-01', to: '2026-10-31' }
 ## 测试
 
 ```bash
-node --test
-```
-
-```bash
-node --test test/*.test.mjs
+npm test          # 33 个单测
+npm run smoke     # 跨平台冒烟测试
+npm run check     # 两个都跑
 ```
 
 33 个用例。`store.test.mjs` 覆盖基础约定：路径哈希稳定性、同一天追加、索引不含路径、salt 持久化、
@@ -169,6 +167,11 @@ node --test test/*.test.mjs
 空更正报错、更正不存在的那天报错、能更正更早的某天、`amend` 不能当普通类别写进去、
 `read` 的 limit 取尾巴并回报总数、limit 超过总数不报错、limit=0 保持老语义、
 导出按时间顺序合并多天、按日期范围 / 类别过滤、空库不炸。
+
+`smoke.mjs` 是**跨平台冒烟测试**，不需要装进 DSH：用假的 ctx 真加载 `index.js`，
+把 8 个工具全调一遍，真写盘、真读回来。它验证的是「插件能不能起来 + 工具注册对不对 +
+隐藏路径的形状 + 索引里没有路径 + 工具层报错回 `ok:false` 而不是抛异常」。
+已在 **win32 / node 24.14.0** 和 **linux / node 22.23.3** 上跑过，两边输出一致。
 
 ---
 

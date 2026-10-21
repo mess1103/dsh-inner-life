@@ -152,7 +152,9 @@ It only assembles the content; whether to store it and who may see it stays the 
 ## Tests
 
 ```bash
-node --test test/*.test.mjs
+npm test          # 33 unit cases
+npm run smoke     # cross-platform smoke test
+npm run check     # both
 ```
 
 33 cases. `store.test.mjs` covers the base contract: hash-path stability, same-day appends, index without
@@ -171,6 +173,12 @@ are rejected, amending a day that was never written is rejected, older days can 
 written through `inner_write`, `read`'s `limit` takes the most recent entries and reports the total,
 `limit` above the total is harmless, `limit: 0` keeps the old "give me everything" semantics, export merges
 days in chronological order, export filters by date range / kind, and export of an empty store doesn't throw.
+
+`smoke.mjs` is a **cross-platform smoke test** that needs no DSH installation: it loads `index.js` with a
+fake ctx, registers the plugin, and calls all eight tools against a real temp directory. It asserts that the
+plugin boots, tools register, the hash-path has the expected shape, the index carries no path, and the tool
+layer returns `{ok:false, error}` instead of throwing. Verified on **win32 / node 24.14.0** and
+**linux / node 22.23.3** with identical output.
 
 ---
 
