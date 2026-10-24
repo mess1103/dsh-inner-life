@@ -1,7 +1,7 @@
 {
   "name": "dsh-inner-life",
   "version": "0.1.1",
-  "description": "给 Agent 一处你不知道的心事：日记 / 心情 / 愿望，每天换一个藏起来的位置。Zero-dependency inner life for DeepSeek Harness agents.",
+  "description": "给 Agent 的私人日记本：八个零依赖工具负责写、改、翻、导出，正文按日期哈希散落在看似随机的目录里，索引不记路径。A private diary for your agent — eight zero-dependency dsh tools for daily entries kept on date-hashed paths the index never records.",
   "type": "module",
   "main": "index.js",
   "exports": {
